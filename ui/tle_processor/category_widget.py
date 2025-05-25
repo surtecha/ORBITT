@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGridLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QGridLayout, QSpacerItem, QSizePolicy
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
 from .plot_tile import PlotTile
 
 class CategoryWidget(QWidget):
@@ -9,43 +8,36 @@ class CategoryWidget(QWidget):
         self.category_name = category_name
         self.plot_names = plot_names
         self.init_ui()
-        
+
     def init_ui(self):
-        self.setStyleSheet("""
-            QWidget {
-                background-color: white;
-                border: none;
-            }
-        """)
-        
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(15)
-        
-        title_label = QLabel(self.category_name)
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setWeight(QFont.Bold)
-        title_label.setFont(title_font)
-        title_label.setStyleSheet("color: black; background: transparent; border: none; margin-bottom: 5px;")
-        layout.addWidget(title_label)
-        
+        layout.setSpacing(10)
+
+        self.title_label = QLabel(self.category_name)
+        self.title_label.setObjectName("categoryTitleLabel")
+        layout.addWidget(self.title_label)
+
         tiles_container = QWidget()
-        tiles_container.setStyleSheet("background-color: transparent; border: none;")
         tiles_layout = QGridLayout(tiles_container)
         tiles_layout.setContentsMargins(0, 0, 0, 0)
         tiles_layout.setSpacing(15)
-        
-        columns = min(3, len(self.plot_names))
-        
+
+        columns = 3
+
         for i, plot_name in enumerate(self.plot_names):
             row = i // columns
             col = i % columns
-            
             plot_tile = PlotTile(plot_name)
-            tiles_layout.addWidget(plot_tile, row, col)
-            
+            tiles_layout.addWidget(plot_tile, row, col, Qt.AlignTop)
+
+        num_items_last_row = len(self.plot_names) % columns
+        if num_items_last_row != 0:
+            for col_idx in range(num_items_last_row, columns):
+                 tiles_layout.addItem(QSpacerItem(0,0, QSizePolicy.Expanding, QSizePolicy.Preferred), len(self.plot_names) // columns, col_idx)
+
         for col in range(columns):
             tiles_layout.setColumnStretch(col, 1)
-            
+
         layout.addWidget(tiles_container)
+        layout.addStretch(1)
