@@ -15,7 +15,7 @@ class TopBar(QWidget):
         self.init_ui()
         
     def init_ui(self):
-        self.setFixedHeight(80)
+        self.setFixedHeight(50)
         self.setStyleSheet("""
             QWidget {
                 background-color: white;
@@ -23,38 +23,39 @@ class TopBar(QWidget):
             }
         """)
         
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-        
-        top_section = QWidget()
-        top_section.setFixedHeight(40)
-        top_layout = QHBoxLayout(top_section)
-        top_layout.setContentsMargins(10, 5, 10, 5)
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(10, 5, 10, 5)
+        main_layout.setSpacing(20) 
         
         self.dropdown = DropdownMenu()
         self.dropdown.selection_changed.connect(self.on_dropdown_changed)
-        top_layout.addWidget(self.dropdown)
-        top_layout.addStretch()
+        main_layout.addWidget(self.dropdown)
         
         self.tab_container = QWidget()
-        self.tab_container.setFixedHeight(40)
         self.tab_layout = QHBoxLayout(self.tab_container)
-        self.tab_layout.setContentsMargins(10, 0, 10, 0)
+        self.tab_layout.setContentsMargins(0, 0, 0, 0)
         self.tab_layout.setSpacing(2)
-        self.tab_layout.addStretch()
         
-        main_layout.addWidget(top_section)
         main_layout.addWidget(self.tab_container)
+        main_layout.addStretch() 
+        
+        self.current_dropdown = self.dropdown.currentText()
+        self.update_tabs()
         
     def on_dropdown_changed(self, dropdown_name):
         self.current_dropdown = dropdown_name
         self.update_tabs()
         self.dropdown_changed.emit(dropdown_name)
         
+        if self.tabs:
+            first_tab_name = list(self.tabs.keys())[0]
+            self.tab_changed.emit(first_tab_name)
+        
     def update_tabs(self):
         for tab in self.tabs.values():
             tab.hide()
+            self.tab_layout.removeWidget(tab)
+            tab.deleteLater()
             
         self.tabs.clear()
         
@@ -69,7 +70,7 @@ class TopBar(QWidget):
             tab = Tab(name)
             tab.clicked.connect(lambda n=name: self.on_tab_clicked(n))
             self.tabs[name] = tab
-            self.tab_layout.insertWidget(self.tab_layout.count() - 1, tab)
+            self.tab_layout.addWidget(tab)
             
         if tab_names:
             first_tab = tab_names[0]
