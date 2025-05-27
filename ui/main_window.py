@@ -6,6 +6,7 @@ from .topbar.topbar import TopBar
 from .tle_processor.sidebar.sidebar import Sidebar
 from .tle_processor.tabs.plotter import Plotter
 from .tle_processor.tabs.extractor import Extractor
+from .tle_processor.tabs.csv_exporter import CSVExporter
 from .neural_network.tabs.model_architecture import ModelArchitecture
 from styles.stylesheet import get_widget_style
 
@@ -15,7 +16,7 @@ class MainWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle('ORBITT - Orbital Retrieval and Behaviour Inspection Tool for TLEs')
+        self.setWindowTitle('ORBITT')
         self.setGeometry(100, 100, 1400, 900)
 
         if os.path.exists('logo.png'):
@@ -54,12 +55,12 @@ class MainWindow(QMainWindow):
         self.tabs = {
             'Plotter': Plotter(),
             'Extractor': Extractor(),
+            'CSV Exporter': CSVExporter(),
             'Model Architecture': ModelArchitecture()
         }
 
         content_layout = QVBoxLayout(self.main_content)
         content_layout.setContentsMargins(0, 0, 0, 0)
-
 
         for tab_widget in self.tabs.values():
             content_layout.addWidget(tab_widget)
@@ -69,7 +70,6 @@ class MainWindow(QMainWindow):
             self.tabs['Plotter'].show()
         elif self.tabs:
             list(self.tabs.values())[0].show()
-
 
     def connect_signals(self):
         self.topbar.dropdown_changed.connect(self.on_dropdown_changed)
@@ -84,6 +84,9 @@ class MainWindow(QMainWindow):
             elif "Extractor" in self.tabs:
                  self.topbar.set_active_tab("Extractor")
                  self.on_tab_changed("Extractor")
+            elif "CSV Exporter" in self.tabs:
+                 self.topbar.set_active_tab("CSV Exporter")
+                 self.on_tab_changed("CSV Exporter")
 
         elif dropdown_name == "Neural Network":
             self.sidebar.hide()
@@ -92,7 +95,6 @@ class MainWindow(QMainWindow):
                 self.on_tab_changed("Model Architecture")
         else:
             self.sidebar.hide()
-
 
     def on_tab_changed(self, tab_name):
         for name, widget in self.tabs.items():

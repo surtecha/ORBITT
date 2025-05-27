@@ -64,7 +64,7 @@ class TopBar(QWidget):
 
         tab_names = []
         if dropdown_name == "Visualize":
-            tab_names = ["Plotter", "Extractor"]
+            tab_names = ["Plotter", "Extractor", "CSV Exporter"]
         elif dropdown_name == "Neural Network":
             tab_names = ["Model Architecture"]
 
