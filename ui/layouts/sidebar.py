@@ -3,6 +3,13 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QFrame
 class SideBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.main_layout = None
+        self.container = None
+        self.container_layout = None
+        self.primary_section = None
+        self.primary_layout = None
+        self.secondary_section = None
+        self.secondary_layout = None
         self.setup_ui()
 
     def setup_ui(self):
