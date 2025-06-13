@@ -42,10 +42,11 @@ class MainWindow(QMainWindow):
 
     def setup_sidebar(self):
         self.sidebar = SideBar(self)
-        self.sidebar_dock = QDockWidget("Controls", self)
+        self.sidebar_dock = QDockWidget("", self)
         self.sidebar_dock.setWidget(self.sidebar)
-        self.sidebar_dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
-        self.sidebar_dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
+        self.sidebar_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        self.sidebar_dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea)
+        self.sidebar_dock.setTitleBarWidget(QWidget())
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.sidebar_dock)
 
     def setup_menubar(self):

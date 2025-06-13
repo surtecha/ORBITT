@@ -20,8 +20,6 @@ class ToolBar(QToolBar):
         self.setup_ui()
 
     def setup_ui(self):
-        self.addWidget(QLabel("Mode: "))
-
         self.dropdown = QComboBox()
         self.dropdown.addItems(list(self.tab_groups.keys()))
         self.dropdown.currentTextChanged.connect(self.on_group_changed)

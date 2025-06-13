@@ -7,19 +7,16 @@ class SideBar(QWidget):
 
     def setup_ui(self):
         self.setFixedWidth(250)
-        self.setMinimumWidth(200)
-        self.setMaximumWidth(300)
 
         self.main_layout = QVBoxLayout()
-        self.main_layout.setContentsMargins(10, 10, 10, 10)
+        self.main_layout.setContentsMargins(5, 10, 5, 10)
         self.main_layout.setSpacing(10)
         self.setLayout(self.main_layout)
 
         self.container = QFrame()
-        self.container.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Raised)
-        self.container.setLineWidth(1)
+        self.container.setFrameStyle(QFrame.Shape.NoFrame)
         self.container_layout = QVBoxLayout()
-        self.container_layout.setContentsMargins(15, 15, 15, 15)
+        self.container_layout.setContentsMargins(5, 15, 5, 15)
         self.container_layout.setSpacing(10)
         self.container.setLayout(self.container_layout)
 
@@ -38,7 +35,7 @@ class SideBar(QWidget):
         self.secondary_section.setLayout(self.secondary_layout)
 
         self.container_layout.addWidget(self.primary_section)
-        self.add_separator()
+        self.container_layout.addStretch()
         self.container_layout.addWidget(self.secondary_section)
         self.container_layout.addStretch()
 
@@ -59,12 +56,3 @@ class SideBar(QWidget):
             if widget is not None:
                 widget.setParent(None)
                 widget.deleteLater()
-
-    def add_separator(self):
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setFrameShadow(QFrame.Shadow.Sunken)
-        separator.setLineWidth(1)
-        separator.setMinimumHeight(2)
-        separator.setContentsMargins(0, 10, 0, 10)
-        self.container_layout.addWidget(separator)
