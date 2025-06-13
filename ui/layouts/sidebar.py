@@ -1,35 +1,40 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QFrame
 
-
 class SideBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setup_ui()
 
-        self.setFixedWidth(200)
-        self.setMinimumWidth(150)
-        self.setMaximumWidth(250)
+    def setup_ui(self):
+        self.setFixedWidth(250)
+        self.setMinimumWidth(200)
+        self.setMaximumWidth(300)
 
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
+        self.main_layout = QVBoxLayout()
+        self.main_layout.setContentsMargins(10, 10, 10, 10)
+        self.main_layout.setSpacing(10)
+        self.setLayout(self.main_layout)
 
         self.container = QFrame()
-        self.container.setFrameShape(QFrame.Shape.StyledPanel)
-        self.container.setFrameShadow(QFrame.Shadow.Plain)
-        self.container.setLineWidth(2)
+        self.container.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Raised)
+        self.container.setLineWidth(1)
         self.container_layout = QVBoxLayout()
-        self.container_layout.setContentsMargins(5, 5, 10, 10)
+        self.container_layout.setContentsMargins(15, 15, 15, 15)
+        self.container_layout.setSpacing(10)
         self.container.setLayout(self.container_layout)
 
-        self.layout.addWidget(self.container)
+        self.main_layout.addWidget(self.container)
 
         self.primary_section = QWidget()
         self.primary_layout = QVBoxLayout()
         self.primary_layout.setContentsMargins(0, 0, 0, 0)
+        self.primary_layout.setSpacing(8)
         self.primary_section.setLayout(self.primary_layout)
 
         self.secondary_section = QWidget()
         self.secondary_layout = QVBoxLayout()
         self.secondary_layout.setContentsMargins(0, 0, 0, 0)
+        self.secondary_layout.setSpacing(8)
         self.secondary_section.setLayout(self.secondary_layout)
 
         self.container_layout.addWidget(self.primary_section)
@@ -60,5 +65,6 @@ class SideBar(QWidget):
         separator.setFrameShape(QFrame.Shape.HLine)
         separator.setFrameShadow(QFrame.Shadow.Sunken)
         separator.setLineWidth(1)
-        separator.setContentsMargins(10, 5, 10, 5)
+        separator.setMinimumHeight(2)
+        separator.setContentsMargins(0, 10, 0, 10)
         self.container_layout.addWidget(separator)
