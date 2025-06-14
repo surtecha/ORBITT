@@ -76,7 +76,13 @@ class MainWindow(QMainWindow):
         tabs = tab_groups.get(group_name, [])
 
         for tab_name in tabs:
-            tab_content = QWidget()
+            # Check if the tab module has a get_tab_widget function
+            tab_module = TAB_WIDGET_MAP.get(tab_name)
+            if tab_module and hasattr(tab_module, 'get_tab_widget'):
+                tab_content = tab_module.get_tab_widget()
+            else:
+                tab_content = QWidget()
+
             self.tab_widget.addTab(tab_content, tab_name)
 
         if tabs:

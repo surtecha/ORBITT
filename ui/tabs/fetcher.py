@@ -1,18 +1,41 @@
-from PySide6.QtWidgets import QPushButton, QLineEdit, QLabel
+from PySide6.QtWidgets import QLabel, QPushButton, QWidget, QVBoxLayout
+from ui.components.folder_selector import FolderSelector
+from ui.components.progress_bar import ProgressBar
+from ui.components.log_viewer import LogViewer
+
 
 def get_sidebar_widgets():
-    # Primary section: inputs and controls
     primary = [
-        QLabel("Fetcher"),
-        QLineEdit("X-Axis"),
-        QLineEdit("Y-Axis"),
-        QPushButton("Plot")
+        QLabel("Input Path"),
+        FolderSelector(""),
+        QPushButton("Fetch")
     ]
 
-    # Secondary section: output/info
     secondary = [
-        QLabel("Status: Ready"),
-        QLabel("Data Points: 0")
+        QLabel("Last Fetched on: "),
+        QLabel("Number of unique objects: "),
+        QLabel("Number of TLEs processed: "),
     ]
 
     return primary, secondary
+
+
+def get_tab_widget():
+    widget = QWidget()
+    layout = QVBoxLayout()
+
+    # Add progress bars with titles
+    layout.addWidget(QLabel("Fetching"))
+    layout.addWidget(ProgressBar())
+
+    layout.addWidget(QLabel("Object Sorting"))
+    layout.addWidget(ProgressBar())
+
+    layout.addWidget(QLabel("Converting to CSV"))
+    layout.addWidget(ProgressBar())
+
+    log_viewer = LogViewer()
+    layout.addWidget(log_viewer, 1)  # stretch factor of 1
+
+    widget.setLayout(layout)
+    return widget
