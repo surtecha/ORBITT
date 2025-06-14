@@ -22,6 +22,7 @@ class ToolBar(QToolBar):
             "Neural Network": ["Predictor", "Training"]
         }
 
+        self.dropdown = None
         self.folder_label = None
         self.folder_selector = None
 
