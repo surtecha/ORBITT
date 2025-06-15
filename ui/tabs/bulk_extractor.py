@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QLabel, QPushButton, QWidget, QVBoxLayout
-from ui.components.folder_selector import FolderSelector
+from ui.components.input_folder_selector import InputFolderSelector
 from ui.components.progress_bar import ProgressBar
 from ui.components.log_viewer import LogViewer
 
@@ -7,7 +7,7 @@ from ui.components.log_viewer import LogViewer
 def get_sidebar_widgets():
     primary = [
         QLabel("Input Path"),
-        FolderSelector(""),
+        InputFolderSelector(""),
         QPushButton("Run")
     ]
 
@@ -23,7 +23,6 @@ def get_tab_widget():
     widget = QWidget()
     layout = QVBoxLayout()
 
-    # Add progress bars with titles
     layout.addWidget(QLabel("Object Sorting"))
     layout.addWidget(ProgressBar())
 
@@ -31,7 +30,7 @@ def get_tab_widget():
     layout.addWidget(ProgressBar())
 
     log_viewer = LogViewer()
-    layout.addWidget(log_viewer, 1)  # stretch factor of 1
+    layout.addWidget(log_viewer, 1)
 
     widget.setLayout(layout)
     return widget
