@@ -47,19 +47,20 @@ class SideBar(QWidget):
         self.container_layout.addStretch()
 
     def set_primary_widgets(self, widgets):
-        self._clear_layout(self.primary_layout)
+        self._clear_layout_safely(self.primary_layout)
         for widget in widgets:
-            self.primary_layout.addWidget(widget)
+            if widget is not None and widget.parent() is None:
+                self.primary_layout.addWidget(widget)
 
     def set_secondary_widgets(self, widgets):
-        self._clear_layout(self.secondary_layout)
+        self._clear_layout_safely(self.secondary_layout)
         for widget in widgets:
-            self.secondary_layout.addWidget(widget)
+            if widget is not None and widget.parent() is None:
+                self.secondary_layout.addWidget(widget)
 
-    def _clear_layout(self, layout):
+    def _clear_layout_safely(self, layout):
         while layout.count():
             item = layout.takeAt(0)
             widget = item.widget()
             if widget is not None:
                 widget.setParent(None)
-                widget.deleteLater()

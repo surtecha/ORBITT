@@ -1,5 +1,4 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLineEdit, QFileDialog
-from PySide6.QtCore import Qt
 
 class FolderSelector(QWidget):
     def __init__(self, placeholder="No folder selected", parent=None):
