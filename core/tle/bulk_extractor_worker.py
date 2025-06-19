@@ -127,7 +127,7 @@ class BulkExtractorWorker(QThread):
                     params = calculate_all_parameters(line1, line2)
                     csv_data.append(params)
                 except Exception as e:
-                    self.log_message.emit(f"  └─ {norad_id}: Error processing TLE ❌")
+                    self.log_message.emit(f"  └─ {norad_id}: Error processing TLE - {str(e)} ❌")
                     continue
 
             if csv_data:
@@ -142,7 +142,7 @@ class BulkExtractorWorker(QThread):
                 return False
 
         except Exception as e:
-            self.log_message.emit(f"  └─ {norad_id}: Processing failed ❌")
+            self.log_message.emit(f"  └─ {norad_id}: Processing failed - {str(e)} ❌")
             return False
 
     def _finalize_processing(self):

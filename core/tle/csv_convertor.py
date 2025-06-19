@@ -1,5 +1,6 @@
 import csv
 import os
+import re
 from datetime import datetime, timedelta
 
 GM = 398600441800000.0
@@ -40,11 +41,22 @@ def extract_inclination(line2):
 
 
 def extract_bstar(line1):
-    bstar_str = line1[53:61]
-    exp_str = line1[59:61]
-    mantissa = float(bstar_str[:6])
-    exponent = int(exp_str)
-    return mantissa * (10 ** exponent)
+    bstar_str = line1[53:61].strip()
+
+    match = re.match(r'([ +-])?(\d+)([+-]\d)', bstar_str)
+    if match:
+        sign_char, mantissa_str, exponent_str = match.groups()
+        sign = -1.0 if sign_char == '-' else 1.0
+        mantissa = float(f'0.{mantissa_str}')
+        exponent = int(exponent_str)
+        return sign * mantissa * (10 ** exponent)
+    else:
+        try:
+            if float(bstar_str) == 0.0:
+                return 0.0
+        except ValueError:
+            pass
+        return 0.0  # Return 0.0 if parsing fails
 
 
 def extract_raan(line2):
