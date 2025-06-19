@@ -4,6 +4,7 @@ from ui.components.input_field import InputField
 from ui.components.radio_button_group import RadioButtonGroup
 from ui.components.slider_input_field import SliderInputField
 from core.plotting.plot_manager import PlotManager
+from ui.dialogs.tle_viewer_window import TLEViewerWindow
 
 
 class PlotterLogic(QObject):
@@ -16,10 +17,13 @@ class PlotterLogic(QObject):
         self.time_filter = None
         self.time_slider = None
         self.plot_button = None
+        self.view_tles_button = None
         self.last_epoch_label = None
         self.tles_count_label = None
         self.total_tles_label = None
         self.main_widget = None
+        self.current_norad_id = None
+        self.current_data_dir = None
 
     def setup_widgets(self):
         self.norad_input = InputField("NORAD ID", "")
@@ -27,13 +31,17 @@ class PlotterLogic(QObject):
         self.time_slider = SliderInputField("Days Back", min_value=1, max_value=100, step=1, default=60)
         self.plot_button = QPushButton("Plot")
 
+        self.view_tles_button = QPushButton("View TLEs")
+        self.view_tles_button.setEnabled(False)
+
         self.last_epoch_label = QLabel("Last Epoch: N/A")
         self.tles_count_label = QLabel("TLEs Obtained: 0")
         self.total_tles_label = QLabel("Total TLEs: 0")
 
         self.plot_button.clicked.connect(self.create_plots)
+        self.view_tles_button.clicked.connect(self.view_tles)
 
-        return ([self.norad_input, self.time_filter, self.time_slider, self.plot_button],
+        return ([self.norad_input, self.time_filter, self.time_slider, self.plot_button, self.view_tles_button],
                 [self.last_epoch_label, self.tles_count_label, self.total_tles_label])
 
     def set_main_widget(self, widget):
@@ -55,6 +63,7 @@ class PlotterLogic(QObject):
 
         if not self.plot_manager.load_data(data_dir, norad_id):
             QMessageBox.warning(None, "Error", f"No data found for NORAD ID: {norad_id}")
+            self.view_tles_button.setEnabled(False)
             return
 
         timeframe = self.time_filter.selected()
@@ -62,6 +71,7 @@ class PlotterLogic(QObject):
 
         if not self.plot_manager.filter_data(timeframe, days_back):
             QMessageBox.warning(None, "Warning", "No data available for the selected time range")
+            self.view_tles_button.setEnabled(False)
             return
 
         last_epoch, filtered_tles, total_tles = self.plot_manager.get_data_info()
@@ -79,6 +89,16 @@ class PlotterLogic(QObject):
                     old_widget.setParent(None)
 
             layout.addWidget(plot_widget)
+
+        self.current_norad_id = norad_id
+        self.current_data_dir = data_dir
+        self.view_tles_button.setEnabled(True)
+
+    def view_tles(self):
+        if not self.current_norad_id or not self.current_data_dir:
+            return
+        tle_window = TLEViewerWindow(self.current_data_dir, self.current_norad_id)
+        tle_window.exec()
 
 
 _plotter_logic = PlotterLogic()
