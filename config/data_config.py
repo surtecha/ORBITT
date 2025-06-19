@@ -2,7 +2,6 @@ import json
 import os
 from pathlib import Path
 
-
 class DataConfig:
     def __init__(self):
         self.config_dir = Path(__file__).parent
@@ -11,7 +10,8 @@ class DataConfig:
 
     def load_config(self):
         default_config = {
-            "data_directory": ""
+            "data_directory": "",
+            "last_fetched_date": "2025-01-01"
         }
 
         if self.config_file.exists():
@@ -54,3 +54,21 @@ class DataConfig:
                 print(f"Error creating objects folder: {e}")
             return str(objects_path)
         return ""
+
+    def get_raw_directory(self):
+        data_dir = self.get_data_directory()
+        if data_dir:
+            raw_path = Path(data_dir) / "raw"
+            try:
+                raw_path.mkdir(parents=True, exist_ok=True)
+            except OSError as e:
+                print(f"Error creating raw folder: {e}")
+            return str(raw_path)
+        return ""
+
+    def get_last_fetched_date(self):
+        return self.config.get("last_fetched_date", "2025-01-01")
+
+    def set_last_fetched_date(self, date_str):
+        self.config["last_fetched_date"] = date_str
+        self.save_config()
