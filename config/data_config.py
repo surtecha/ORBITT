@@ -42,19 +42,15 @@ class DataConfig:
 
     def set_data_directory(self, path):
         self.config["data_directory"] = path
-        self.create_objects_folder(path)
         self.save_config()
-
-    def create_objects_folder(self, base_path):
-        if base_path and os.path.exists(base_path):
-            objects_path = Path(base_path) / "objects"
-            try:
-                objects_path.mkdir(exist_ok=True)
-            except OSError as e:
-                print(f"Error creating objects folder: {e}")
 
     def get_objects_directory(self):
         data_dir = self.get_data_directory()
         if data_dir:
-            return str(Path(data_dir) / "objects")
+            objects_path = Path(data_dir) / "objects"
+            try:
+                objects_path.mkdir(parents=True, exist_ok=True)
+            except OSError as e:
+                print(f"Error creating objects folder: {e}")
+            return str(objects_path)
         return ""
