@@ -36,8 +36,8 @@ class ToolBar(QToolBar):
 
         self.addSeparator()
 
-        self.folder_label = QLabel("Data Folder:")
-        self.folder_selector = FolderSelector("Select data folder")
+        self.folder_label = QLabel("Satellite Data Folder:")
+        self.folder_selector = FolderSelector("Select the folder to store/load satellite data")
         self.folder_selector.setMaximumWidth(500)
 
         saved_path = self.config_manager.get_data_directory()
