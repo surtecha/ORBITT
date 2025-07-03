@@ -1,168 +1,111 @@
-from PySide6.QtWidgets import QDialog, QVBoxLayout
-from PySide6.QtCore import Qt
-from PySide6.QtWebEngineWidgets import QWebEngineView
-import plotly.graph_objects as go
-import plotly.offline as pyo
+import matplotlib.pyplot as plt
 import pandas as pd
-import tempfile
-import os
+from matplotlib.dates import DateFormatter
+import matplotlib.dates as mdates
+import numpy as np
+import seaborn as sns
 
 
-class PlotWindow(QDialog):
+class PlotWindow:
     def __init__(self, data, plot_info, parent=None):
-        super().__init__(parent)
         self.data = data.copy()
         self.plot_info = plot_info
-        self.setModal(False)
-        self.setup_ui()
-        self.create_plot()
+        self.create_interactive_plot()
 
-    def setup_ui(self):
-        self.setWindowTitle(f"Interactive Plot - {self.plot_info['title']}")
-        self.setGeometry(100, 100, 1200, 800)
-        self.setWindowFlags(Qt.WindowType.Window)
-
-        layout = QVBoxLayout(self)
-
-        self.web_view = QWebEngineView()
-        layout.addWidget(self.web_view)
-
-    def create_plot(self):
+    def create_interactive_plot(self):
         if len(self.data) == 0:
             return
 
         self.data['epoch_utc'] = pd.to_datetime(self.data['epoch_utc'])
         self.data = self.data.sort_values('epoch_utc')
-
-        epoch_column = 'epoch_utc'
         y_column = self.plot_info['column']
 
         if y_column not in self.data.columns:
             return
 
-        valid_data = self.data.dropna(subset=[epoch_column, y_column])
-
+        valid_data = self.data.dropna(subset=['epoch_utc', y_column])
         if len(valid_data) == 0:
             return
 
-        timestamps = valid_data[epoch_column]
+        sns.set_style("whitegrid")
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans']
+
+        fig, ax = plt.subplots(figsize=(12, 8))
+        fig.canvas.manager.set_window_title(self.plot_info['title'])
+
+        timestamps = valid_data['epoch_utc']
         y_values = valid_data[y_column].astype(float)
 
-        fig = go.Figure()
+        line = ax.plot(timestamps, y_values, color='#1f77b4', linewidth=2.5,
+                       marker='o', markersize=5, alpha=0.8, markerfacecolor='white',
+                       markeredgecolor='#1f77b4', markeredgewidth=2, label=self.plot_info['title'])[0]
 
-        fig.add_trace(go.Scatter(
-            x=timestamps,
-            y=y_values,
-            mode='lines+markers',
-            name=self.plot_info['title'],
-            line=dict(color='#3498db', width=2.5),
-            marker=dict(
-                color='#2980b9',
-                size=5,
-                opacity=0.8,
-                symbol='circle',
-                line=dict(width=1, color='#ffffff')
-            ),
-            hovertemplate='<b>Time</b>: %{x}<br><b>' + self.plot_info['ylabel'] + '</b>: %{y:.6f}<extra></extra>'
-        ))
+        self._add_hover_functionality(fig, ax, line, timestamps, y_values)
 
-        fig.update_layout(
-            xaxis=dict(
-                title=dict(text='Time', font=dict(size=14, color='#2c3e50')),
-                showgrid=True,
-                gridcolor='rgba(52, 73, 94, 0.15)',
-                gridwidth=1,
-                tickformat='%m/%d %H:%M',
-                tickfont=dict(size=12, color='#34495e'),
-                linecolor='#bdc3c7',
-                linewidth=1
-            ),
-            yaxis=dict(
-                title=dict(text=self.plot_info['ylabel'], font=dict(size=14, color='#2c3e50')),
-                showgrid=True,
-                gridcolor='rgba(52, 73, 94, 0.15)',
-                gridwidth=1,
-                tickfont=dict(size=12, color='#34495e'),
-                linecolor='#bdc3c7',
-                linewidth=1
-            ),
-            plot_bgcolor='#f8f9fa',
-            paper_bgcolor='#ffffff',
-            hovermode='x unified',
-            showlegend=False,
-            margin=dict(l=70, r=30, t=30, b=60),
-            autosize=True,
-            height=None,
-            dragmode='pan',
-            font=dict(family='Segoe UI, Arial, sans-serif', color='#2c3e50')
-        )
+        ax.set_xlabel('Time', fontsize=13, fontweight='600', color='#2c3e50')
+        ax.set_ylabel(self.plot_info['ylabel'], fontsize=13, fontweight='600', color='#2c3e50')
+        ax.set_title(f"{self.plot_info['title']}", fontsize=16, fontweight='700',
+                     pad=25, color='#2c3e50')
 
-        fig.update_xaxes(rangeslider_visible=False)
+        ax.tick_params(axis='both', which='major', labelsize=11, colors='#34495e')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color('#bdc3c7')
+        ax.spines['bottom'].set_color('#bdc3c7')
 
-        temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False)
-        html_content = pyo.plot(fig, output_type='div', include_plotlyjs=True)
+        ax.xaxis.set_major_formatter(DateFormatter('%m/%d %H:%M'))
+        time_range = (timestamps.max() - timestamps.min()).total_seconds()
 
-        full_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Interactive Plot</title>
-            <style>
-                body {{ 
-                    margin: 0; 
-                    padding: 0; 
-                    height: 100vh; 
-                    overflow: hidden; 
-                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                    font-family: 'Segoe UI', Arial, sans-serif;
-                }}
-                .plotly-graph-div {{ 
-                    height: 100vh !important; 
-                    width: 100% !important; 
-                    box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);
-                }}
-                .modebar {{
-                    background: rgba(255,255,255,0.9) !important;
-                    border-radius: 4px !important;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-                }}
-                .modebar-btn {{
-                    color: #34495e !important;
-                }}
-                .modebar-btn:hover {{
-                    background: rgba(52, 152, 219, 0.1) !important;
-                }}
-            </style>
-            <script>
-                window.addEventListener('load', function() {{
-                    var plotDiv = document.querySelector('.plotly-graph-div');
-                    if (plotDiv && plotDiv._fullLayout) {{
-                        plotDiv.on('plotly_relayout', function(eventdata) {{
-                            if (eventdata['xaxis.range[0]'] || eventdata['yaxis.range[0]']) {{
-                                // Handle zoom/pan events if needed
-                            }}
-                        }});
-                    }}
-                }});
-            </script>
-        </head>
-        <body>
-            {html_content}
-        </body>
-        </html>
-        """
+        if time_range <= 86400:
+            ax.xaxis.set_major_locator(mdates.HourLocator(interval=max(1, int(time_range / 3600 / 8))))
+        elif time_range <= 604800:
+            ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
+        elif time_range <= 2592000:
+            ax.xaxis.set_major_locator(mdates.DayLocator(interval=max(1, int(time_range / 86400 / 10))))
+        else:
+            ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=max(1, int(time_range / 604800 / 10))))
 
-        temp_file.write(full_html)
-        temp_file.close()
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
+        plt.tight_layout()
+        plt.subplots_adjust(bottom=0.15)
+        plt.show()
 
-        self.web_view.load(f"file://{temp_file.name}")
-        self.temp_file_path = temp_file.name
+    def _add_hover_functionality(self, fig, ax, line, timestamps, y_values):
+        annot = ax.annotate('', xy=(0, 0), xytext=(15, 15), textcoords="offset points",
+                            bbox=dict(boxstyle="round,pad=0.5", facecolor="#ecf0f1", alpha=0.95,
+                                      edgecolor="#34495e", linewidth=1),
+                            arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0.1",
+                                            color="#34495e", lw=1.5),
+                            fontsize=10, ha='left', color='#2c3e50')
+        annot.set_visible(False)
 
-    def closeEvent(self, event):
-        if hasattr(self, 'temp_file_path') and os.path.exists(self.temp_file_path):
-            try:
-                os.unlink(self.temp_file_path)
-            except:
-                pass
-        super().closeEvent(event)
+        def on_hover(event):
+            if event.inaxes == ax:
+                x_data = mdates.date2num(timestamps)
+                y_data = y_values.values
+
+                if len(x_data) > 0:
+                    distances = np.sqrt((x_data - event.xdata) ** 2 +
+                                        ((y_data - event.ydata) / (ax.get_ylim()[1] - ax.get_ylim()[0])) ** 2)
+                    min_dist_idx = np.argmin(distances)
+
+                    if distances[min_dist_idx] < 0.1:
+                        x_val = timestamps.iloc[min_dist_idx]
+                        y_val = y_data[min_dist_idx]
+                        hover_text = f"Time: {x_val.strftime('%Y-%m-%d %H:%M:%S')}\n{self.plot_info['ylabel']}: {y_val:.6f}"
+                        annot.xy = (x_data[min_dist_idx], y_val)
+                        annot.set_text(hover_text)
+                        annot.set_visible(True)
+                        fig.canvas.draw_idle()
+                        return
+
+                if annot.get_visible():
+                    annot.set_visible(False)
+                    fig.canvas.draw_idle()
+
+        fig.canvas.mpl_connect('motion_notify_event', on_hover)
+
+
+def create_interactive_plot(data, plot_info):
+    PlotWindow(data, plot_info)

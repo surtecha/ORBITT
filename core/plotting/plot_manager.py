@@ -2,7 +2,6 @@ from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QScrollArea, QLabel
 from ui.components.tile import Tile
 from core.plotting.plot_utils import load_satellite_data, filter_data_by_timeframe, create_preview_plot, get_plot_sections
-from ui.dialogs.plot_window import PlotWindow
 
 
 class PlotManager(QObject):
@@ -69,8 +68,9 @@ class PlotManager(QObject):
 
     def _open_interactive_plot(self, plot_info):
         if self.filtered_data is not None:
-            window = PlotWindow(self.filtered_data, plot_info)
-            window.exec()
+            # Import here to avoid circular imports
+            from ui.dialogs.plot_window import create_interactive_plot
+            create_interactive_plot(self.filtered_data, plot_info)
 
     def get_data_info(self):
         if self.current_data is None:
