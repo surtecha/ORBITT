@@ -14,9 +14,7 @@ def parse_tle_epoch(line1):
             year = 1900 + epoch_year
 
         base_date = datetime(year, 1, 1)
-        date = base_date + timedelta(days=epoch_day - 1)
-
-        return date
+        return base_date + timedelta(days=epoch_day - 1)
     except:
         return None
 
@@ -24,7 +22,7 @@ def parse_tle_epoch(line1):
 def extract_norad_id(line1):
     match = re.search(r'^\d\s+(\d+)', line1)
     if match:
-        return int(match.group(1))
+        return match.group(1)
     return None
 
 
@@ -33,9 +31,7 @@ def read_tle_file(filepath):
 
     try:
         with open(filepath, 'r') as file:
-            lines = file.readlines()
-
-        lines = [line.strip() for line in lines]
+            lines = [line.strip() for line in file.readlines()]
 
         i = 0
         while i < len(lines) - 1:
@@ -53,8 +49,7 @@ def read_tle_file(filepath):
             i += 1
 
         return tle_data
-    except Exception as e:
-        print(f"Error reading file {filepath}: {e}")
+    except:
         return {}
 
 
@@ -63,9 +58,7 @@ def read_existing_tles(filepath):
 
     try:
         with open(filepath, 'r') as file:
-            lines = file.readlines()
-
-        lines = [line.strip() for line in lines]
+            lines = [line.strip() for line in file.readlines()]
 
         i = 0
         while i < len(lines) - 1:
@@ -76,29 +69,7 @@ def read_existing_tles(filepath):
                 epoch = parse_tle_epoch(line1)
                 tle_list.append((epoch, line1, line2))
             i += 1
-
     except:
         pass
 
     return tle_list
-
-
-def process_tle_files(input_dir, output_dir):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    for filename in os.listdir(input_dir):
-        if filename.endswith('.txt'):
-            filepath = os.path.join(input_dir, filename)
-            tle_data = read_tle_file(filepath)
-
-            for norad_id, new_tles in tle_data.items():
-                output_file = os.path.join(output_dir, f"{norad_id}.txt")
-
-                existing_tles = read_existing_tles(output_file)
-                all_tles = existing_tles + new_tles
-                sorted_tles = sorted(all_tles, key=lambda x: x[0] if x[0] else datetime.min)
-
-                with open(output_file, 'w') as file:
-                    for _, line1, line2 in sorted_tles:
-                        file.write(f"{line1}\n{line2}\n")

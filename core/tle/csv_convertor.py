@@ -51,12 +51,7 @@ def extract_bstar(line1):
         exponent = int(exponent_str)
         return sign * mantissa * (10 ** exponent)
     else:
-        try:
-            if float(bstar_str) == 0.0:
-                return 0.0
-        except ValueError:
-            pass
-        return 0.0  # Return 0.0 if parsing fails
+        return 0.0
 
 
 def extract_raan(line2):
@@ -104,41 +99,20 @@ def calculate_all_parameters(line1, line2):
     }
 
 
-def save_to_csv(data_list, csv_filepath, sort_by='epoch_utc'):
+def save_to_csv(data_list, csv_filepath):
     fieldnames = ['epoch_utc', 'apogee_altitude', 'perigee_altitude', 'mean_motion', 'mean_motion_deriv',
                   'eccentricity', 'inclination', 'bstar', 'semi_major_axis', 'raan', 'arg_perigee']
-
-    sorted_data = sorted(data_list, key=lambda x: x.get(sort_by, ''))
 
     with open(csv_filepath, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(sorted_data)
+        writer.writerows(data_list)
 
 
-def append_to_csv(data_list, csv_filepath, sort_by='epoch_utc'):
+def append_to_csv(data_list, csv_filepath):
     fieldnames = ['epoch_utc', 'apogee_altitude', 'perigee_altitude', 'mean_motion', 'mean_motion_deriv',
                   'eccentricity', 'inclination', 'bstar', 'semi_major_axis', 'raan', 'arg_perigee']
 
-    existing_data = []
-    if os.path.exists(csv_filepath):
-        with open(csv_filepath, 'r', newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            existing_data = list(reader)
-            for row in existing_data:
-                for key in row:
-                    if row[key] and key != 'epoch_utc':
-                        row[key] = float(row[key])
-
-    existing_epochs = {row['epoch_utc'] for row in existing_data}
-
-    new_data = [row for row in data_list if row['epoch_utc'] not in existing_epochs]
-
-    if new_data:
-        combined_data = existing_data + new_data
-        sorted_data = sorted(combined_data, key=lambda x: x.get(sort_by, ''))
-
-        with open(csv_filepath, 'w', newline='') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(sorted_data)
+    with open(csv_filepath, 'a', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writerows(data_list)
