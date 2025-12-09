@@ -4,7 +4,7 @@ def create_menubar(app):
     menubar = tk.Menu(app)
 
     insertmenu = tk.Menu(menubar, tearoff=0)
-    insertmenu.add_command(label="Insert Local TLE")
+    insertmenu.add_command(label="Insert Local TLE", command=app.insert_local_tle)
     insertmenu.add_command(label="Insert from SpaceTrack")
     menubar.add_cascade(label="Insert", menu=insertmenu)
 
