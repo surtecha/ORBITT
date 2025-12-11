@@ -5,7 +5,6 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 from matplotlib.figure import Figure
 import geopandas as gpd
 import numpy as np
-from datetime import datetime
 
 
 def create_propagator_widget(propagation_data, propagator_controller):
