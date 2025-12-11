@@ -7,3 +7,4 @@ class SatelliteData:
     norad_id: str
     name: str
     dataframe: pd.DataFrame
+    tle_lines: list = None

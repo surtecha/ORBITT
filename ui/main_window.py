@@ -17,6 +17,8 @@ class MainWindow(QMainWindow):
     plot_requested = Signal(str)
     propagate_requested = Signal(str)
     delete_requested = Signal(str)
+    export_csv_requested = Signal(str)
+    export_tle_requested = Signal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -71,6 +73,8 @@ class MainWindow(QMainWindow):
         self.sidebar.plot_requested.connect(self.plot_requested.emit)
         self.sidebar.propagate_requested.connect(self.propagate_requested.emit)
         self.sidebar.delete_requested.connect(self._on_delete_requested)
+        self.sidebar.export_csv_requested.connect(self.export_csv_requested.emit)
+        self.sidebar.export_tle_requested.connect(self.export_tle_requested.emit)
 
     def _on_insert_local_tle(self):
         filepath = open_tle_file()

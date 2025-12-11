@@ -10,6 +10,8 @@ class Sidebar(QWidget):
     plot_requested = Signal(str)
     propagate_requested = Signal(str)
     delete_requested = Signal(str)
+    export_csv_requested = Signal(str)
+    export_tle_requested = Signal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -91,6 +93,14 @@ class Sidebar(QWidget):
         menu.addAction("Propagate")
         menu.addSeparator()
         
+        menu.addAction("Export as CSV")
+        
+        export_tle_menu = menu.addMenu("Export as TLE")
+        export_tle_menu.addAction("Export as .tle")
+        export_tle_menu.addAction("Export as .txt")
+        
+        menu.addSeparator()
+        
         delete_action = menu.addAction("Delete")
         font = delete_action.font()
         font.setBold(True)
@@ -98,12 +108,21 @@ class Sidebar(QWidget):
         
         action = menu.exec(QCursor.pos())
         if action:
-            action_map = {
-                "Rename": self.rename_requested,
-                "Duplicate": self.duplicate_requested,
-                "Table": self.table_requested,
-                "Plot": self.plot_requested,
-                "Propagate": self.propagate_requested,
-                "Delete": self.delete_requested
-            }
-            action_map[action.text()].emit(self.selected_id)
+            text = action.text()
+            if text == "Export as CSV":
+                self.export_csv_requested.emit(self.selected_id)
+            elif text == "Export as .tle":
+                self.export_tle_requested.emit(self.selected_id, ".tle")
+            elif text == "Export as .txt":
+                self.export_tle_requested.emit(self.selected_id, ".txt")
+            else:
+                action_map = {
+                    "Rename": self.rename_requested,
+                    "Duplicate": self.duplicate_requested,
+                    "Table": self.table_requested,
+                    "Plot": self.plot_requested,
+                    "Propagate": self.propagate_requested,
+                    "Delete": self.delete_requested
+                }
+                if text in action_map:
+                    action_map[text].emit(self.selected_id)

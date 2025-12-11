@@ -1,4 +1,5 @@
 from PySide6.QtCore import QObject, Signal
+from PySide6.QtWidgets import QFileDialog
 from backend.tle.parser import parse_tle_file
 from data.satellite import SatelliteData
 import uuid
@@ -22,7 +23,8 @@ class TLEController(QObject):
             satellite_id=satellite_id,
             norad_id=result['norad_id'],
             name=result['norad_id'],
-            dataframe=result['dataframe']
+            dataframe=result['dataframe'],
+            tle_lines=result['tle_lines']
         )
 
         self.satellites[satellite_id] = satellite
@@ -84,7 +86,8 @@ class TLEController(QObject):
                         satellite_id=satellite_id,
                         norad_id=norad_id,
                         name=norad_id,
-                        dataframe=result['dataframe']
+                        dataframe=result['dataframe'],
+                        tle_lines=result['tle_lines']
                     )
 
                     self.satellites[satellite_id] = satellite
@@ -95,3 +98,43 @@ class TLEController(QObject):
         finally:
             if os.path.exists(temp_filepath):
                 os.remove(temp_filepath)
+    
+    def export_csv(self, satellite_id):
+        if satellite_id not in self.satellites:
+            return
+        
+        satellite = self.satellites[satellite_id]
+        filepath, _ = QFileDialog.getSaveFileName(
+            None,
+            "Export as CSV",
+            f"{satellite.name}.csv",
+            "CSV Files (*.csv)"
+        )
+        
+        if not filepath:
+            return
+        
+        satellite.dataframe.to_csv(filepath, index=False)
+    
+    def export_tle(self, satellite_id, extension):
+        if satellite_id not in self.satellites:
+            return
+        
+        satellite = self.satellites[satellite_id]
+        if not satellite.tle_lines:
+            return
+        
+        filter_str = f"TLE Files (*{extension})"
+        filepath, _ = QFileDialog.getSaveFileName(
+            None,
+            f"Export as TLE ({extension})",
+            f"{satellite.name}{extension}",
+            filter_str
+        )
+        
+        if not filepath:
+            return
+        
+        with open(filepath, 'w') as f:
+            for line1, line2 in satellite.tle_lines:
+                f.write(f"{line1}\n{line2}\n")

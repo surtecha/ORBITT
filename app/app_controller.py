@@ -19,6 +19,8 @@ class AppController:
         self.main_window.rename_requested.connect(self.tle_controller.rename_satellite)
         self.main_window.table_requested.connect(self.tle_controller.get_satellite_data)
         self.main_window.delete_requested.connect(self.tle_controller.delete_satellite)
+        self.main_window.export_csv_requested.connect(self.tle_controller.export_csv)
+        self.main_window.export_tle_requested.connect(self.tle_controller.export_tle)
 
         self.tle_controller.satellite_added.connect(self.main_window.add_satellite_to_sidebar)
         self.tle_controller.satellite_renamed.connect(self.main_window.update_satellite_name)

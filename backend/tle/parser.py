@@ -9,6 +9,7 @@ def parse_tle_file(filepath):
         lines = f.readlines()
 
     tle_data = []
+    tle_lines = []
     norad_id = None
 
     for i in range(0, len(lines), 2):
@@ -21,6 +22,8 @@ def parse_tle_file(filepath):
         if norad_id is None:
             norad_id_raw = line1[2:7].strip()
             norad_id = str(int(norad_id_raw))
+
+        tle_lines.append((line1, line2))
 
         rso = Satrec.twoline2rv(line1, line2)
 
@@ -48,5 +51,6 @@ def parse_tle_file(filepath):
 
     return {
         'norad_id': norad_id,
-        'dataframe': df
+        'dataframe': df,
+        'tle_lines': tle_lines
     }
