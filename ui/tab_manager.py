@@ -65,10 +65,14 @@ class TabManager(QWidget):
             del self.tabs[tab_key]
 
     def update_tab_names(self, satellite_id, new_name):
-        for tab_key, tab_info in self.tabs.items():
+        # Iterate through a copy of items to avoid issues during iteration
+        for tab_key, tab_info in list(self.tabs.items()):
             if tab_info['satellite_id'] == satellite_id:
                 widget = tab_info['widget']
                 index = self.tab_widget.indexOf(widget)
                 if index >= 0:
                     tab_type = tab_info['type']
-                    self.tab_widget.setTabText(index, f"{new_name}-{tab_type}")
+                    new_tab_name = f"{new_name}-{tab_type}"
+                    self.tab_widget.setTabText(index, new_tab_name)
+        
+        self.tab_widget.update()
