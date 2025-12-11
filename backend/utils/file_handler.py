@@ -21,10 +21,6 @@ def open_tle_file():
                 None,
                 "Invalid TLE File",
                 f"The selected file does not appear to be a valid TLE file.\n\n"
-                f"TLE files must contain two-line element sets with:\n"
-                f"- Line 1 starting with '1 '\n"
-                f"- Line 2 starting with '2 '\n"
-                f"- Each line being 69 characters long\n\n"
                 f"File: {os.path.basename(filepath)}"
             )
             return None
