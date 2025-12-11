@@ -3,6 +3,8 @@ from ui.tabs.tabular_tab import create_tabular_widget
 
 
 class TabManager(QWidget):
+    TAB_ICONS = {'Tabular': '▦', 'Plotting': '⌗', 'Propagation': '⊛'}
+    
     def __init__(self):
         super().__init__()
 
@@ -26,7 +28,7 @@ class TabManager(QWidget):
 
         table = create_tabular_widget(dataframe)
 
-        tab_name = f"{name}-Tabular"
+        tab_name = f"{self.TAB_ICONS['Tabular']} {name}"
         self.tab_widget.addTab(table, tab_name)
         self.tabs[tab_key] = {'widget': table, 'satellite_id': satellite_id, 'type': 'Tabular'}
         self.tab_widget.setCurrentWidget(table)
@@ -50,14 +52,14 @@ class TabManager(QWidget):
             del self.tabs[tab_key]
 
     def update_tab_names(self, satellite_id, new_name):
-        # Iterate through a copy of items to avoid issues during iteration
         for tab_key, tab_info in list(self.tabs.items()):
             if tab_info['satellite_id'] == satellite_id:
                 widget = tab_info['widget']
                 index = self.tab_widget.indexOf(widget)
                 if index >= 0:
                     tab_type = tab_info['type']
-                    new_tab_name = f"{new_name}-{tab_type}"
+                    icon = self.TAB_ICONS.get(tab_type, '')
+                    new_tab_name = f"{icon} {new_name}"
                     self.tab_widget.setTabText(index, new_tab_name)
         
         self.tab_widget.update()
