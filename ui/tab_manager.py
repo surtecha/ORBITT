@@ -47,6 +47,21 @@ class TabManager(QWidget):
         self.tab_widget.addTab(plot_widget, tab_name)
         self.tabs[tab_key] = {'widget': plot_widget, 'satellite_id': satellite_id, 'type': 'Plotting'}
         self.tab_widget.setCurrentWidget(plot_widget)
+    
+    def create_propagator_tab(self, satellite_id, name, propagation_data, propagator_controller):
+        tab_key = f"{satellite_id}-Propagation"
+
+        if tab_key in self.tabs:
+            self.tab_widget.setCurrentWidget(self.tabs[tab_key]['widget'])
+            return
+
+        from ui.tabs.propagator_tab import create_propagator_widget
+        propagator_widget = create_propagator_widget(propagation_data, propagator_controller)
+
+        tab_name = f"{self.TAB_ICONS['Propagation']} {name}"
+        self.tab_widget.addTab(propagator_widget, tab_name)
+        self.tabs[tab_key] = {'widget': propagator_widget, 'satellite_id': satellite_id, 'type': 'Propagation'}
+        self.tab_widget.setCurrentWidget(propagator_widget)
 
     def _close_tab(self, index):
         widget = self.tab_widget.widget(index)

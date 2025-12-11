@@ -118,6 +118,9 @@ class MainWindow(QMainWindow):
     def show_satellite_plot(self, satellite_id, name, dataframe):
         self.tab_manager.create_plot_tab(satellite_id, name, dataframe)
     
+    def show_satellite_propagator(self, satellite_id, name, propagation_data, propagator_controller):
+        self.tab_manager.create_propagator_tab(satellite_id, name, propagation_data, propagator_controller)
+    
     def update_login_menu_state(self, login_action, logout_action, spacetrack_insert_action):
         self.login_action = login_action
         self.logout_action = logout_action

@@ -8,6 +8,9 @@ class AppController:
         self.main_window = MainWindow()
         self.tle_controller = TLEController()
         self.login_controller = LoginController(self.main_window)
+        
+        from backend.controllers.propagator_controller import PropagatorController
+        self.propagator_controller = PropagatorController(self.tle_controller)
 
         self._connect_signals()
         self._update_login_menu()
@@ -28,6 +31,13 @@ class AppController:
         self.tle_controller.satellite_removed.connect(self.main_window.remove_satellite)
         self.tle_controller.satellite_data_ready.connect(self.main_window.show_satellite_table)
         self.tle_controller.satellite_plot_ready.connect(self.main_window.show_satellite_plot)
+        
+        self.main_window.propagate_requested.connect(self.propagator_controller.propagate_satellite)
+        self.propagator_controller.propagation_data_ready.connect(
+            lambda sat_id, name, data: self.main_window.show_satellite_propagator(
+                sat_id, name, data, self.propagator_controller
+            )
+        )
         
         # Login signals
         self.main_window.login_action.triggered.connect(self.login_controller.handle_login_click)
