@@ -84,13 +84,10 @@ class Sidebar(QWidget):
         
         menu.addAction("Table")
         menu.addAction("Plot")
+        menu.addAction("Propagate")
         menu.addSeparator()
         
         menu.addAction("Rename")
-        menu.addAction("Duplicate")
-        menu.addSeparator()
-        
-        menu.addAction("Propagate")
         menu.addSeparator()
         
         menu.addAction("Export as CSV")
@@ -118,7 +115,6 @@ class Sidebar(QWidget):
             else:
                 action_map = {
                     "Rename": self.rename_requested,
-                    "Duplicate": self.duplicate_requested,
                     "Table": self.table_requested,
                     "Plot": self.plot_requested,
                     "Propagate": self.propagate_requested,
