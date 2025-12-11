@@ -115,8 +115,10 @@ class MainWindow(QMainWindow):
     def show_satellite_table(self, satellite_id, name, dataframe):
         self.tab_manager.create_tabular_tab(satellite_id, name, dataframe)
     
+    def show_satellite_plot(self, satellite_id, name, dataframe):
+        self.tab_manager.create_plot_tab(satellite_id, name, dataframe)
+    
     def update_login_menu_state(self, login_action, logout_action, spacetrack_insert_action):
-        """Update menu items based on login state."""
         self.login_action = login_action
         self.logout_action = logout_action
         self.insert_spacetrack = spacetrack_insert_action

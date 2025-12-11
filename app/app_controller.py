@@ -18,6 +18,7 @@ class AppController:
         self.main_window.load_spacetrack_tle_requested.connect(self.tle_controller.load_spacetrack_tle)
         self.main_window.rename_requested.connect(self.tle_controller.rename_satellite)
         self.main_window.table_requested.connect(self.tle_controller.get_satellite_data)
+        self.main_window.plot_requested.connect(self.tle_controller.get_satellite_plot_data)
         self.main_window.delete_requested.connect(self.tle_controller.delete_satellite)
         self.main_window.export_csv_requested.connect(self.tle_controller.export_csv)
         self.main_window.export_tle_requested.connect(self.tle_controller.export_tle)
@@ -26,6 +27,7 @@ class AppController:
         self.tle_controller.satellite_renamed.connect(self.main_window.update_satellite_name)
         self.tle_controller.satellite_removed.connect(self.main_window.remove_satellite)
         self.tle_controller.satellite_data_ready.connect(self.main_window.show_satellite_table)
+        self.tle_controller.satellite_plot_ready.connect(self.main_window.show_satellite_plot)
         
         # Login signals
         self.main_window.login_action.triggered.connect(self.login_controller.handle_login_click)

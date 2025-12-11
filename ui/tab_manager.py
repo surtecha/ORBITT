@@ -1,9 +1,10 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from ui.tabs.tabular_tab import create_tabular_widget
+from ui.tabs.plot_tab import create_plot_widget
 
 
 class TabManager(QWidget):
-    TAB_ICONS = {'Tabular': '▦', 'Plotting': '⌗', 'Propagation': '⊛'}
+    TAB_ICONS = {'Tabular': '📊', 'Plotting': '📈', 'Propagation': '⊛'}
     
     def __init__(self):
         super().__init__()
@@ -32,6 +33,20 @@ class TabManager(QWidget):
         self.tab_widget.addTab(table, tab_name)
         self.tabs[tab_key] = {'widget': table, 'satellite_id': satellite_id, 'type': 'Tabular'}
         self.tab_widget.setCurrentWidget(table)
+    
+    def create_plot_tab(self, satellite_id, name, dataframe):
+        tab_key = f"{satellite_id}-Plotting"
+
+        if tab_key in self.tabs:
+            self.tab_widget.setCurrentWidget(self.tabs[tab_key]['widget'])
+            return
+
+        plot_widget = create_plot_widget(dataframe)
+
+        tab_name = f"{self.TAB_ICONS['Plotting']} {name}"
+        self.tab_widget.addTab(plot_widget, tab_name)
+        self.tabs[tab_key] = {'widget': plot_widget, 'satellite_id': satellite_id, 'type': 'Plotting'}
+        self.tab_widget.setCurrentWidget(plot_widget)
 
     def _close_tab(self, index):
         widget = self.tab_widget.widget(index)

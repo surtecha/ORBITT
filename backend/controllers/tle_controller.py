@@ -10,6 +10,7 @@ class TLEController(QObject):
     satellite_renamed = Signal(str, str)
     satellite_removed = Signal(str)
     satellite_data_ready = Signal(str, str, object)
+    satellite_plot_ready = Signal(str, str, object)
 
     def __init__(self):
         super().__init__()
@@ -44,6 +45,11 @@ class TLEController(QObject):
         if satellite_id in self.satellites:
             satellite = self.satellites[satellite_id]
             self.satellite_data_ready.emit(satellite_id, satellite.name, satellite.dataframe)
+    
+    def get_satellite_plot_data(self, satellite_id):
+        if satellite_id in self.satellites:
+            satellite = self.satellites[satellite_id]
+            self.satellite_plot_ready.emit(satellite_id, satellite.name, satellite.dataframe)
     
     def load_spacetrack_tle(self, tle_data):
         import tempfile
