@@ -4,7 +4,7 @@ from ui.tabs.plot_tab import create_plot_widget
 
 
 class TabManager(QWidget):
-    TAB_ICONS = {'Tabular': '📊', 'Plotting': '📈', 'Propagation': '⊛'}
+    TAB_ICONS = {'Tabular': '🗒️', 'Plotting': '📈', 'Propagation': '🌏'}
     
     def __init__(self):
         super().__init__()
