@@ -42,3 +42,56 @@ class TLEController(QObject):
         if satellite_id in self.satellites:
             satellite = self.satellites[satellite_id]
             self.satellite_data_ready.emit(satellite_id, satellite.name, satellite.dataframe)
+    
+    def load_spacetrack_tle(self, tle_data):
+        import tempfile
+        import os
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+            temp_file.write(tle_data)
+            temp_filepath = temp_file.name
+        
+        try:
+            lines = tle_data.strip().split('\n')
+            norad_groups = {}
+            
+            for i in range(0, len(lines), 2):
+                if i + 1 >= len(lines):
+                    break
+                
+                line1 = lines[i][:69]
+                line2 = lines[i + 1][:69]
+                
+                norad_id_raw = line1[2:7].strip()
+                norad_id = str(int(norad_id_raw))
+                
+                if norad_id not in norad_groups:
+                    norad_groups[norad_id] = []
+                norad_groups[norad_id].append((line1, line2))
+            
+            for norad_id, tle_lines in norad_groups.items():
+                tle_text = '\n'.join([f"{l1}\n{l2}" for l1, l2 in tle_lines])
+                
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as obj_file:
+                    obj_file.write(tle_text)
+                    obj_filepath = obj_file.name
+                
+                try:
+                    result = parse_tle_file(obj_filepath)
+                    satellite_id = str(uuid.uuid4())
+
+                    satellite = SatelliteData(
+                        satellite_id=satellite_id,
+                        norad_id=norad_id,
+                        name=norad_id,
+                        dataframe=result['dataframe']
+                    )
+
+                    self.satellites[satellite_id] = satellite
+                    self.satellite_added.emit(satellite)
+                finally:
+                    if os.path.exists(obj_filepath):
+                        os.remove(obj_filepath)
+        finally:
+            if os.path.exists(temp_filepath):
+                os.remove(temp_filepath)

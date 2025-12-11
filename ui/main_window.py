@@ -5,11 +5,13 @@ from ui.sidebar import Sidebar
 from ui.tab_manager import TabManager
 from ui.dialogs.rename_dialog import RenameDialog
 from ui.dialogs.delete_confirm_dialog import DeleteConfirmDialog
+from ui.dialogs.spacetrack_tle_dialog import SpaceTrackTLEDialog
 from backend.utils.file_handler import open_tle_file
 
 
 class MainWindow(QMainWindow):
     load_tle_requested = Signal(str)
+    load_spacetrack_tle_requested = Signal(str)
     rename_requested = Signal(str, str)
     table_requested = Signal(str)
     plot_requested = Signal(str)
@@ -43,17 +45,25 @@ class MainWindow(QMainWindow):
     def _create_menubar(self):
         menubar = self.menuBar()
 
+        # Insert menu
         insert_menu = menubar.addMenu("Insert")
         insert_local = QAction("Insert Local TLE", self)
         insert_local.triggered.connect(self._on_insert_local_tle)
         insert_menu.addAction(insert_local)
 
-        insert_spacetrack = QAction("Insert from SpaceTrack", self)
-        insert_menu.addAction(insert_spacetrack)
+        self.insert_spacetrack = QAction("Insert from SpaceTrack", self)
+        self.insert_spacetrack.triggered.connect(self._on_insert_spacetrack_tle)
+        self.insert_spacetrack.setEnabled(False)  # Disabled until logged in
+        insert_menu.addAction(self.insert_spacetrack)
 
+        # Login menu
         login_menu = menubar.addMenu("Login")
-        login_action = QAction("Login to Spacetrack", self)
-        login_menu.addAction(login_action)
+        self.login_action = QAction("Login to Space-Track", self)
+        login_menu.addAction(self.login_action)
+        
+        self.logout_action = QAction("Logout", self)
+        self.logout_action.setVisible(False)
+        login_menu.addAction(self.logout_action)
 
     def _connect_signals(self):
         self.sidebar.rename_requested.connect(self._on_rename_requested)
@@ -66,6 +76,13 @@ class MainWindow(QMainWindow):
         filepath = open_tle_file()
         if filepath:
             self.load_tle_requested.emit(filepath)
+    
+    def _on_insert_spacetrack_tle(self):
+        dialog = SpaceTrackTLEDialog(self)
+        if dialog.exec():
+            tle_data = dialog.get_tle_data()
+            if tle_data:
+                self.load_spacetrack_tle_requested.emit(tle_data)
 
     def _on_rename_requested(self, satellite_id):
         current_name = self.sidebar.get_satellite_name(satellite_id)
@@ -93,3 +110,9 @@ class MainWindow(QMainWindow):
 
     def show_satellite_table(self, satellite_id, name, dataframe):
         self.tab_manager.create_tabular_tab(satellite_id, name, dataframe)
+    
+    def update_login_menu_state(self, login_action, logout_action, spacetrack_insert_action):
+        """Update menu items based on login state."""
+        self.login_action = login_action
+        self.logout_action = logout_action
+        self.insert_spacetrack = spacetrack_insert_action

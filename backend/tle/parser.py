@@ -19,7 +19,8 @@ def parse_tle_file(filepath):
         line2 = lines[i + 1][:69]
 
         if norad_id is None:
-            norad_id = line1[2:7].strip()
+            norad_id_raw = line1[2:7].strip()
+            norad_id = str(int(norad_id_raw))
 
         rso = Satrec.twoline2rv(line1, line2)
 
