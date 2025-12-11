@@ -36,10 +36,15 @@ def parse_tle_file(filepath):
             'i': np.degrees(rso.inclo),
             'raan': np.degrees(rso.nodeo),
             'aop': np.degrees(rso.argpo),
-            'ma': np.degrees(rso.mo)
+            'ma': np.degrees(rso.mo),
+            'bstar': rso.bstar,
+            'mean_motion': rso.no_kozai * 60 * 24 / (2 * np.pi),
+            'mean_motion_derivative': rso.ndot * 60 * 60 * 24 * 24 / (2 * np.pi),
+            'revolution_number': rso.revnum
         })
 
     df = pd.DataFrame(tle_data)
+    df = df.drop_duplicates().reset_index(drop=True)
 
     return {
         'norad_id': norad_id,
