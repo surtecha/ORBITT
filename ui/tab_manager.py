@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QTableWidget, QTableWidgetItem
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
+from ui.tabs.tabular_tab import create_tabular_widget
 
 
 class TabManager(QWidget):
@@ -24,27 +24,12 @@ class TabManager(QWidget):
             self.tab_widget.setCurrentWidget(self.tabs[tab_key]['widget'])
             return
 
-        table = self._create_table(dataframe)
+        table = create_tabular_widget(dataframe)
 
         tab_name = f"{name}-Tabular"
         self.tab_widget.addTab(table, tab_name)
         self.tabs[tab_key] = {'widget': table, 'satellite_id': satellite_id, 'type': 'Tabular'}
         self.tab_widget.setCurrentWidget(table)
-
-    def _create_table(self, dataframe):
-        table = QTableWidget()
-        table.setRowCount(len(dataframe))
-        table.setColumnCount(len(dataframe.columns))
-        table.setHorizontalHeaderLabels(dataframe.columns.tolist())
-
-        for i, row in dataframe.iterrows():
-            for j, value in enumerate(row):
-                item = QTableWidgetItem(str(value))
-                item.setTextAlignment(Qt.AlignCenter)
-                table.setItem(i, j, item)
-
-        table.resizeColumnsToContents()
-        return table
 
     def _close_tab(self, index):
         widget = self.tab_widget.widget(index)
