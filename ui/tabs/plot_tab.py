@@ -10,6 +10,8 @@ def create_plot_widget(dataframe):
     column_headers = {
         'time': 'Epoch',
         'a': 'Semi Major Axis (km)',
+        'apogee': 'Apogee (km)',
+        'perigee': 'Perigee (km)',
         'e': 'Eccentricity',
         'i': 'Inclination (deg)',
         'raan': 'RAAN (deg)',

@@ -32,10 +32,18 @@ def parse_tle_file(filepath):
         epoch = datetime(int(2000 + rso.epochyr), int(month), int(day),
                          int(hour), int(minute), int(second), int(micsec))
 
+        semi_major_axis = rso.a * rso.radiusearthkm
+        eccentricity = rso.ecco
+        
+        apogee = semi_major_axis * (1 + eccentricity) - rso.radiusearthkm
+        perigee = semi_major_axis * (1 - eccentricity) - rso.radiusearthkm
+
         tle_data.append({
             'time': epoch,
-            'a': rso.a * rso.radiusearthkm,
-            'e': rso.ecco,
+            'a': semi_major_axis,
+            'apogee': apogee,
+            'perigee': perigee,
+            'e': eccentricity,
             'i': np.degrees(rso.inclo),
             'raan': np.degrees(rso.nodeo),
             'aop': np.degrees(rso.argpo),
