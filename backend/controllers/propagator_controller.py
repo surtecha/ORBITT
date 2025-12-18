@@ -42,8 +42,6 @@ class PropagatorController(QObject):
         result = propagate_orbit(tle_line1, tle_line2, start_time, stop_time, step_seconds)
         
         latitudes, longitudes, altitudes = convert_trajectory(
-            result['positions'], 
-            result['velocities'], 
             result['times'],
             tle_line1,
             tle_line2
