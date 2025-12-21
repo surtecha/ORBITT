@@ -101,11 +101,6 @@ class GroundTraceWidget(QWidget):
         self.compute_button.setMaximumWidth(80)
         layout.addWidget(self.compute_button)
 
-        self.settings_button = QPushButton("⚙ Settings")
-        self.settings_button.clicked.connect(self._open_settings)
-        self.settings_button.setMaximumWidth(90)
-        layout.addWidget(self.settings_button)
-
         layout.addWidget(QLabel("Current Time:"))
         self.current_time_input = QLineEdit("--")
         self.current_time_input.setMaximumWidth(150)
@@ -148,6 +143,11 @@ class GroundTraceWidget(QWidget):
         self.reset_button.setEnabled(False)
         self.reset_button.setMaximumWidth(70)
         layout.addWidget(self.reset_button)
+
+        self.settings_button = QPushButton("⚙ Settings")
+        self.settings_button.clicked.connect(self._open_settings)
+        self.settings_button.setMaximumWidth(90)
+        layout.addWidget(self.settings_button)
 
         layout.addStretch()
 
@@ -233,49 +233,25 @@ class GroundTraceWidget(QWidget):
         lats = self.trajectory['latitudes']
         segments = self.trajectory['segments']
 
-        self.trajectory_lines = []
+        from matplotlib.collections import LineCollection
 
-        for seg_idx in range(3):
+        points = []
+        colors = []
+        
+        for i in range(len(lons) - 1):
+            if abs(lons[i+1] - lons[i]) > 180:
+                continue
+            
+            seg_idx = segments[i]
             if not self.settings['segment_visibility'][seg_idx]:
                 continue
-
-            seg_lons = []
-            seg_lats = []
-
-            for i in range(len(lons)):
-                if segments[i] == seg_idx:
-                    if i > 0 and segments[i-1] != seg_idx:
-                        seg_lons = []
-                        seg_lats = []
-                    
-                    if i > 0 and len(seg_lons) > 0 and abs(lons[i] - lons[i - 1]) > 180:
-                        if seg_lons:
-                            line, = self.ax.plot(seg_lons, seg_lats, 
-                                               color=self.settings['segment_colors'][seg_idx], 
-                                               linewidth=self.settings['thickness'], 
-                                               alpha=0.7)
-                            self.trajectory_lines.append(line)
-                        seg_lons = []
-                        seg_lats = []
-                    
-                    seg_lons.append(lons[i])
-                    seg_lats.append(lats[i])
-                else:
-                    if seg_lons:
-                        line, = self.ax.plot(seg_lons, seg_lats, 
-                                           color=self.settings['segment_colors'][seg_idx], 
-                                           linewidth=self.settings['thickness'], 
-                                           alpha=0.7)
-                        self.trajectory_lines.append(line)
-                        seg_lons = []
-                        seg_lats = []
-
-            if seg_lons:
-                line, = self.ax.plot(seg_lons, seg_lats, 
-                                   color=self.settings['segment_colors'][seg_idx], 
-                                   linewidth=self.settings['thickness'], 
-                                   alpha=0.7)
-                self.trajectory_lines.append(line)
+            
+            points.append([(lons[i], lats[i]), (lons[i+1], lats[i+1])])
+            colors.append(self.settings['segment_colors'][seg_idx])
+        
+        if points:
+            lc = LineCollection(points, colors=colors, linewidths=self.settings['thickness'], alpha=0.7)
+            self.ax.add_collection(lc)
 
         self.satellite_marker, = self.ax.plot([], [], 'o', 
                                               color=self.settings['marker_color'], 
