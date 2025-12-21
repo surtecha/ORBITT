@@ -16,6 +16,7 @@ class MainWindow(QMainWindow):
     table_requested = Signal(str)
     plot_requested = Signal(str)
     propagate_requested = Signal(str)
+    ground_trace_requested = Signal(str)
     delete_requested = Signal(str)
     export_csv_requested = Signal(str)
     export_tle_requested = Signal(str, str)
@@ -72,6 +73,7 @@ class MainWindow(QMainWindow):
         self.sidebar.table_requested.connect(self.table_requested.emit)
         self.sidebar.plot_requested.connect(self.plot_requested.emit)
         self.sidebar.propagate_requested.connect(self.propagate_requested.emit)
+        self.sidebar.ground_trace_requested.connect(self.ground_trace_requested.emit)
         self.sidebar.delete_requested.connect(self._on_delete_requested)
         self.sidebar.export_csv_requested.connect(self.export_csv_requested.emit)
         self.sidebar.export_tle_requested.connect(self.export_tle_requested.emit)
@@ -120,6 +122,9 @@ class MainWindow(QMainWindow):
     
     def show_satellite_propagator(self, satellite_id, name, propagation_data, propagator_controller):
         self.tab_manager.create_propagator_tab(satellite_id, name, propagation_data, propagator_controller)
+    
+    def show_satellite_ground_trace(self, satellite_id, name, ground_trace_data, ground_trace_controller):
+        self.tab_manager.create_ground_trace_tab(satellite_id, name, ground_trace_data, ground_trace_controller)
     
     def update_login_menu_state(self, login_action, logout_action, spacetrack_insert_action):
         self.login_action = login_action

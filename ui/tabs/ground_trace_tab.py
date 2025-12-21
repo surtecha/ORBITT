@@ -1,32 +1,39 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSlider, QGroupBox
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, 
+                               QPushButton, QSlider, QGroupBox)
 from PySide6.QtCore import Qt, QTimer
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from backend.utils.map_loader import MapLoader
-from ui.dialogs.propagator_settings_dialog import PropagatorSettingsDialog
+from ui.dialogs.ground_trace_settings_dialog import GroundTraceSettingsDialog
 import numpy as np
 
 
-def create_propagator_widget(propagation_data, propagator_controller):
-    widget = PropagatorWidget(propagation_data, propagator_controller)
+def create_ground_trace_widget(ground_trace_data, ground_trace_controller):
+    widget = GroundTraceWidget(ground_trace_data, ground_trace_controller)
     return widget
 
 
-class PropagatorWidget(QWidget):
-    def __init__(self, propagation_data, propagator_controller):
+class GroundTraceWidget(QWidget):
+    def __init__(self, ground_trace_data, ground_trace_controller):
         super().__init__()
 
-        self.propagation_data = propagation_data
-        self.propagator_controller = propagator_controller
+        self.ground_trace_data = ground_trace_data
+        self.ground_trace_controller = ground_trace_controller
         self.trajectory = None
         self.current_index = 0
         self.is_playing = False
 
+        period_minutes = ground_trace_data['period_minutes']
+        default_interval_minutes = int(period_minutes / 2)
+
         self.settings = {
-            'trace_color': '#FFD700',
+            'interval1_minutes': default_interval_minutes,
+            'interval2_minutes': default_interval_minutes,
+            'segment_colors': ['#FFD700', '#FF4444', '#FFD700'],
             'marker_color': '#FF0000',
-            'thickness': 1
+            'thickness': 1,
+            'segment_visibility': [True, True, True]
         }
 
         map_loader = MapLoader()
@@ -79,16 +86,14 @@ class PropagatorWidget(QWidget):
 
         layout.addWidget(QLabel("Start:"))
         self.start_time_input = QLineEdit()
-        epoch = self.propagation_data['epoch']
+        epoch = self.ground_trace_data['epoch']
         self.start_time_input.setText(epoch.strftime('%Y-%m-%d %H:%M:%S'))
-        self.start_time_input.setReadOnly(True)
         self.start_time_input.setMaximumWidth(150)
         layout.addWidget(self.start_time_input)
 
         layout.addWidget(QLabel("Stop:"))
         self.stop_time_input = QLineEdit()
-        self.stop_time_input.setText("+5 days")
-        self.stop_time_input.setMaximumWidth(100)
+        self.stop_time_input.setMaximumWidth(150)
         layout.addWidget(self.stop_time_input)
 
         self.compute_button = QPushButton("Compute")
@@ -96,10 +101,17 @@ class PropagatorWidget(QWidget):
         self.compute_button.setMaximumWidth(80)
         layout.addWidget(self.compute_button)
 
-        layout.addWidget(QLabel("Time:"))
-        self.current_time_label = QLabel("--")
-        self.current_time_label.setMinimumWidth(150)
-        layout.addWidget(self.current_time_label)
+        self.settings_button = QPushButton("⚙ Settings")
+        self.settings_button.clicked.connect(self._open_settings)
+        self.settings_button.setMaximumWidth(90)
+        layout.addWidget(self.settings_button)
+
+        layout.addWidget(QLabel("Current Time:"))
+        self.current_time_input = QLineEdit("--")
+        self.current_time_input.setMaximumWidth(150)
+        self.current_time_input.setReadOnly(True)
+        self.current_time_input.returnPressed.connect(self._on_time_input_changed)
+        layout.addWidget(self.current_time_input)
 
         layout.addStretch()
 
@@ -137,11 +149,6 @@ class PropagatorWidget(QWidget):
         self.reset_button.setMaximumWidth(70)
         layout.addWidget(self.reset_button)
 
-        self.settings_button = QPushButton("⚙ Settings")
-        self.settings_button.clicked.connect(self._open_settings)
-        self.settings_button.setMaximumWidth(90)
-        layout.addWidget(self.settings_button)
-
         layout.addStretch()
 
         group.setLayout(layout)
@@ -166,65 +173,13 @@ class PropagatorWidget(QWidget):
 
         self.ax.set_xlim(-180, 180)
         self.ax.set_ylim(-90, 90)
-        self.ax.set_title(f"SGP4 Propagation: {self.propagation_data['name']}")
+        self.ax.set_title(f"Ground Trace: {self.ground_trace_data['name']}")
         self.ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
 
         self.canvas.draw()
 
-    def _compute_trajectory(self):
-        start_time = self.propagation_data['epoch']
-        stop_time_str = self.stop_time_input.text()
-
-        self.trajectory = self.propagator_controller.compute_trajectory(
-            self.propagation_data['tle_line1'],
-            self.propagation_data['tle_line2'],
-            start_time,
-            stop_time_str,
-            step_seconds=60
-        )
-
-        self.current_index = 0
-        self.play_button.setEnabled(True)
-        self.step_slider.setEnabled(True)
-        self.reset_button.setEnabled(True)
-
-        self._draw_trajectory()
-        self._update_time_display()
-
-        lon = self.trajectory['longitudes'][0]
-        lat = self.trajectory['latitudes'][0]
-        self.satellite_marker.set_data([lon], [lat])
-        self.canvas.draw()
-
-    def _draw_trajectory(self):
-        self._draw_world_map()
-
-        lons = self.trajectory['longitudes']
-        lats = self.trajectory['latitudes']
-
-        wrapped_lons = []
-        wrapped_lats = []
-
-        for i in range(len(lons)):
-            if i > 0 and abs(lons[i] - lons[i - 1]) > 180:
-                wrapped_lons.append(np.nan)
-                wrapped_lats.append(np.nan)
-            wrapped_lons.append(lons[i])
-            wrapped_lats.append(lats[i])
-
-        self.trajectory_line, = self.ax.plot(wrapped_lons, wrapped_lats, 
-                                             color=self.settings['trace_color'], 
-                                             linewidth=self.settings['thickness'], 
-                                             alpha=0.6)
-
-        self.satellite_marker, = self.ax.plot([], [], 'o', 
-                                             color=self.settings['marker_color'], 
-                                             markersize=10)
-
-        self.canvas.draw()
-
     def _open_settings(self):
-        dialog = PropagatorSettingsDialog(self.settings, self)
+        dialog = GroundTraceSettingsDialog(self.settings, self)
         if dialog.exec():
             self.settings = dialog.get_settings()
             if self.trajectory:
@@ -234,28 +189,124 @@ class PropagatorWidget(QWidget):
                 self.satellite_marker.set_data([lon], [lat])
                 self.canvas.draw()
 
+    def _compute_trajectory(self):
+        start_time_str = self.start_time_input.text()
+        stop_time_str = self.stop_time_input.text()
+
+        start_time = self.ground_trace_controller.parse_time_input(start_time_str)
+        stop_time = self.ground_trace_controller.parse_time_input(stop_time_str)
+
+        if not start_time or not stop_time:
+            return
+
+        interval1_minutes = self.settings['interval1_minutes']
+        interval2_minutes = self.settings['interval2_minutes']
+
+        self.trajectory = self.ground_trace_controller.compute_ground_trace(
+            self.ground_trace_data['tle_line1'],
+            self.ground_trace_data['tle_line2'],
+            start_time,
+            stop_time,
+            interval1_minutes,
+            interval2_minutes,
+            step_seconds=60
+        )
+
+        self.current_index = self.trajectory['midpoint_index']
+        self.play_button.setEnabled(True)
+        self.step_slider.setEnabled(True)
+        self.reset_button.setEnabled(True)
+        self.current_time_input.setReadOnly(False)
+
+        self._draw_trajectory()
+        self._update_time_display()
+
+        lon = self.trajectory['longitudes'][self.current_index]
+        lat = self.trajectory['latitudes'][self.current_index]
+        self.satellite_marker.set_data([lon], [lat])
+        self.canvas.draw()
+
+    def _draw_trajectory(self):
+        self._draw_world_map()
+
+        lons = self.trajectory['longitudes']
+        lats = self.trajectory['latitudes']
+        segments = self.trajectory['segments']
+
+        self.trajectory_lines = []
+
+        for seg_idx in range(3):
+            if not self.settings['segment_visibility'][seg_idx]:
+                continue
+
+            seg_lons = []
+            seg_lats = []
+
+            for i in range(len(lons)):
+                if segments[i] == seg_idx:
+                    if i > 0 and segments[i-1] != seg_idx:
+                        seg_lons = []
+                        seg_lats = []
+                    
+                    if i > 0 and len(seg_lons) > 0 and abs(lons[i] - lons[i - 1]) > 180:
+                        if seg_lons:
+                            line, = self.ax.plot(seg_lons, seg_lats, 
+                                               color=self.settings['segment_colors'][seg_idx], 
+                                               linewidth=self.settings['thickness'], 
+                                               alpha=0.7)
+                            self.trajectory_lines.append(line)
+                        seg_lons = []
+                        seg_lats = []
+                    
+                    seg_lons.append(lons[i])
+                    seg_lats.append(lats[i])
+                else:
+                    if seg_lons:
+                        line, = self.ax.plot(seg_lons, seg_lats, 
+                                           color=self.settings['segment_colors'][seg_idx], 
+                                           linewidth=self.settings['thickness'], 
+                                           alpha=0.7)
+                        self.trajectory_lines.append(line)
+                        seg_lons = []
+                        seg_lats = []
+
+            if seg_lons:
+                line, = self.ax.plot(seg_lons, seg_lats, 
+                                   color=self.settings['segment_colors'][seg_idx], 
+                                   linewidth=self.settings['thickness'], 
+                                   alpha=0.7)
+                self.trajectory_lines.append(line)
+
+        self.satellite_marker, = self.ax.plot([], [], 'o', 
+                                              color=self.settings['marker_color'], 
+                                              markersize=10)
+        self.canvas.draw()
+
     def _toggle_playback(self):
         if self.is_playing:
             self.is_playing = False
             self.play_button.setText("▶ Play")
             self.timer.stop()
+            self.current_time_input.setReadOnly(False)
         else:
             self.is_playing = True
-            self.play_button.setText("⸠Pause")
+            self.play_button.setText("⏸ Pause")
             self.timer.start()
+            self.current_time_input.setReadOnly(True)
 
     def _reset_animation(self):
         if self.trajectory is None:
             return
 
-        self.current_index = 0
+        self.current_index = self.trajectory['midpoint_index']
         if self.is_playing:
             self.is_playing = False
             self.play_button.setText("▶ Play")
             self.timer.stop()
+            self.current_time_input.setReadOnly(False)
 
-        lon = self.trajectory['longitudes'][0]
-        lat = self.trajectory['latitudes'][0]
+        lon = self.trajectory['longitudes'][self.current_index]
+        lat = self.trajectory['latitudes'][self.current_index]
         self.satellite_marker.set_data([lon], [lat])
         self._update_time_display()
         self.canvas.draw()
@@ -265,7 +316,7 @@ class PropagatorWidget(QWidget):
             return
 
         current_time = self.trajectory['times'][self.current_index]
-        self.current_time_label.setText(current_time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.current_time_input.setText(current_time.strftime('%Y-%m-%d %H:%M:%S'))
 
     def _update_animation(self):
         if self.trajectory is None:
@@ -283,3 +334,23 @@ class PropagatorWidget(QWidget):
         self.satellite_marker.set_data([lon], [lat])
         self._update_time_display()
         self.canvas.draw_idle()
+
+    def _on_time_input_changed(self):
+        if self.trajectory is None or self.is_playing:
+            return
+
+        time_str = self.current_time_input.text()
+        target_time = self.ground_trace_controller.parse_time_input(time_str)
+
+        if target_time:
+            new_index = self.ground_trace_controller.find_time_index(
+                self.trajectory['times'], 
+                target_time
+            )
+            self.current_index = new_index
+            
+            lon = self.trajectory['longitudes'][self.current_index]
+            lat = self.trajectory['latitudes'][self.current_index]
+            self.satellite_marker.set_data([lon], [lat])
+            self._update_time_display()
+            self.canvas.draw()

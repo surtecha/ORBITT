@@ -11,6 +11,9 @@ class AppController:
         
         from backend.controllers.propagator_controller import PropagatorController
         self.propagator_controller = PropagatorController(self.tle_controller)
+        
+        from backend.controllers.ground_trace_controller import GroundTraceController
+        self.ground_trace_controller = GroundTraceController(self.tle_controller)
 
         self._connect_signals()
         self._update_login_menu()
@@ -39,7 +42,13 @@ class AppController:
             )
         )
         
-        # Login signals
+        self.main_window.ground_trace_requested.connect(self.ground_trace_controller.initiate_ground_trace)
+        self.ground_trace_controller.ground_trace_data_ready.connect(
+            lambda sat_id, name, data: self.main_window.show_satellite_ground_trace(
+                sat_id, name, data, self.ground_trace_controller
+            )
+        )
+        
         self.main_window.login_action.triggered.connect(self.login_controller.handle_login_click)
         self.main_window.logout_action.triggered.connect(self.login_controller.handle_logout_click)
         self.login_controller.login_status_changed.connect(self._on_login_status_changed)

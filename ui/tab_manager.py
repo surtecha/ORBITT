@@ -4,7 +4,7 @@ from ui.tabs.plot_tab import create_plot_widget
 
 
 class TabManager(QWidget):
-    TAB_ICONS = {'Tabular': '🗒️', 'Plotting': '📈', 'Propagation': '🌏'}
+    TAB_ICONS = {'Tabular': '🗒️', 'Plotting': '📈', 'Propagation': '🌏', 'Ground Trace': '🛰️'}
     
     def __init__(self):
         super().__init__()
@@ -62,6 +62,22 @@ class TabManager(QWidget):
         self.tab_widget.addTab(propagator_widget, tab_name)
         self.tabs[tab_key] = {'widget': propagator_widget, 'satellite_id': satellite_id, 'type': 'Propagation'}
         self.tab_widget.setCurrentWidget(propagator_widget)
+    
+    def create_ground_trace_tab(self, satellite_id, name, ground_trace_data, ground_trace_controller):
+        tab_key = f"{satellite_id}-Ground Trace"
+
+        if tab_key in self.tabs:
+            self.tab_widget.setCurrentWidget(self.tabs[tab_key]['widget'])
+            return
+
+        from ui.tabs.ground_trace_tab import create_ground_trace_widget
+        ground_trace_widget = create_ground_trace_widget(ground_trace_data, ground_trace_controller)
+
+        tab_name = f"{self.TAB_ICONS['Ground Trace']} {name}"
+        self.tab_widget.addTab(ground_trace_widget, tab_name)
+        self.tabs[tab_key] = {'widget': ground_trace_widget, 'satellite_id': satellite_id, 'type': 'Ground Trace'}
+        self.tab_widget.setCurrentWidget(ground_trace_widget)
+
 
     def _close_tab(self, index):
         widget = self.tab_widget.widget(index)

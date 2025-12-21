@@ -9,6 +9,7 @@ class Sidebar(QWidget):
     table_requested = Signal(str)
     plot_requested = Signal(str)
     propagate_requested = Signal(str)
+    ground_trace_requested = Signal(str)
     delete_requested = Signal(str)
     export_csv_requested = Signal(str)
     export_tle_requested = Signal(str, str)
@@ -85,6 +86,7 @@ class Sidebar(QWidget):
         menu.addAction("Table")
         menu.addAction("Plot")
         menu.addAction("Propagate")
+        menu.addAction("Ground Trace")
         menu.addSeparator()
         
         menu.addAction("Rename")
@@ -118,6 +120,7 @@ class Sidebar(QWidget):
                     "Table": self.table_requested,
                     "Plot": self.plot_requested,
                     "Propagate": self.propagate_requested,
+                    "Ground Trace": self.ground_trace_requested,
                     "Delete": self.delete_requested
                 }
                 if text in action_map:
